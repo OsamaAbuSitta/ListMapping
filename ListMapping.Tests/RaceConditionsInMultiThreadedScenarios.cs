@@ -8,6 +8,14 @@ namespace ListMapping.Tests
     [TestFixture]
     public class RaceConditionsInMultiThreadedScenarios
     {
+
+        [SetUp]
+        public void Setup()
+        {
+
+            Mapper.DefaultMapperFactory = new DefaultMapperFactory();
+        }
+
         [Test]
         public void MapList_MultiThreadedMapping_RaceConditionExample()
         {

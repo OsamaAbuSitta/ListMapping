@@ -1,6 +1,5 @@
 namespace ListMapping.Tests
 {
-
     [TestFixture]
     public class MapListTests
     {
@@ -22,19 +21,20 @@ namespace ListMapping.Tests
         [SetUp]
         public void Setup()
         {
+            Mapper.DefaultMapperFactory = new DefaultMapperFactory();
             _sourceList = new List<Source>
-        {
-            new Source { Id = 1, Name = "Source1" },
-            new Source { Id = 2, Name = "Source2" },
-            new Source { Id = 3, Name = "Source3" }
-        };
+                    {
+                        new Source { Id = 1, Name = "Source1" },
+                        new Source { Id = 2, Name = "Source2" },
+                        new Source { Id = 3, Name = "Source3" }
+                    };
 
             _destinationList = new List<Destination>
-        {
-            new Destination { Id = 2, Name = "OldDestination2" },
-            new Destination { Id = 3, Name = "OldDestination3" },
-            new Destination { Id = 4, Name = "OldDestination4" }
-        };
+                    {
+                        new Destination { Id = 2, Name = "OldDestination2" },
+                        new Destination { Id = 3, Name = "OldDestination3" },
+                        new Destination { Id = 4, Name = "OldDestination4" }
+                    };
         }
 
         [Test]

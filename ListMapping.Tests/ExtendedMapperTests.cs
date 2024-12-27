@@ -46,26 +46,13 @@ namespace ListMapping.Tests
         #endregion
 
         #region Setup
-        private List<Source> _sourceList;
-        private List<Destination> _destinationList;
 
         [SetUp]
         public void Setup()
         {
-            // Typical Source and Destination lists
-            _sourceList = new List<Source>
-        {
-            new Source { Id = 1, Name = "Source1" },
-            new Source { Id = 2, Name = "Source2" },
-            new Source { Id = 3, Name = "Source3" }
-        };
 
-            _destinationList = new List<Destination>
-        {
-            new Destination { Id = 2, Name = "OldDestination2" },
-            new Destination { Id = 3, Name = "OldDestination3" },
-            new Destination { Id = 4, Name = "OldDestination4" }
-        };
+            Mapper.DefaultMapperFactory = new DefaultMapperFactory();
+
         }
         #endregion
 
@@ -74,23 +61,37 @@ namespace ListMapping.Tests
         [Test]
         public void MapList_StringSelector_ShouldUpdateAndRemoveAndAdd()
         {
+            var sourceList = new List<Source>
+                {
+                    new Source { Id = 1, Name = "Source1" },
+                    new Source { Id = 2, Name = "Source2" },
+                    new Source { Id = 3, Name = "Source3" }
+                };
+
+            var destinationList = new List<Destination>
+                {
+                    new Destination { Id = 2, Name = "OldDestination2" },
+                    new Destination { Id = 3, Name = "OldDestination3" },
+                    new Destination { Id = 4, Name = "OldDestination4" }
+                };
+
             // Arrange & Act
-            _destinationList.MapList(_sourceList, "Id", "Id");
+            destinationList.MapList(sourceList, "Id", "Id");
 
             // Assert
             // 1) Updated existing Id = 2 and Id = 3
-            Assert.AreEqual("Source2", _destinationList.First(d => d.Id == 2).Name);
-            Assert.AreEqual("Source3", _destinationList.First(d => d.Id == 3).Name);
+            Assert.AreEqual("Source2", destinationList.First(d => d.Id == 2).Name);
+            Assert.AreEqual("Source3", destinationList.First(d => d.Id == 3).Name);
 
             // 2) Removed old Id = 4
-            Assert.IsFalse(_destinationList.Any(d => d.Id == 4), "Item with Id=4 should be removed.");
+            Assert.IsFalse(destinationList.Any(d => d.Id == 4), "Item with Id=4 should be removed.");
 
             // 3) Added new Id = 1
-            Assert.IsTrue(_destinationList.Any(d => d.Id == 1), "Item with Id=1 should be added.");
-            Assert.AreEqual("Source1", _destinationList.First(d => d.Id == 1).Name);
+            Assert.IsTrue(destinationList.Any(d => d.Id == 1), "Item with Id=1 should be added.");
+            Assert.AreEqual("Source1", destinationList.First(d => d.Id == 1).Name);
 
             // Final count should be 3
-            Assert.AreEqual(3, _destinationList.Count);
+            Assert.AreEqual(3, destinationList.Count);
         }
 
         [Test]
@@ -98,10 +99,16 @@ namespace ListMapping.Tests
         {
             // Arrange
             var invalidSourceList = new List<SourceNoId> { new SourceNoId { SomeProperty = "Hello" } };
-
+         
+            var destinationList = new List<Destination>
+                {
+                    new Destination { Id = 2, Name = "OldDestination2" },
+                    new Destination { Id = 3, Name = "OldDestination3" },
+                    new Destination { Id = 4, Name = "OldDestination4" }
+                };
             // Act & Assert
             Assert.Throws<NotSupportedException>(() =>
-                _destinationList.MapList(invalidSourceList, "Id", "Id"));
+                destinationList.MapList(invalidSourceList, "Id", "Id"));
         }
 
         [Test]
@@ -109,10 +116,16 @@ namespace ListMapping.Tests
         {
             // Arrange
             var invalidDestinationList = new List<DestinationNoId> { new DestinationNoId { SomeProperty = "Hello" } };
+            var sourceList = new List<Source>
+                {
+                    new Source { Id = 1, Name = "Source1" },
+                    new Source { Id = 2, Name = "Source2" },
+                    new Source { Id = 3, Name = "Source3" }
+                };
 
             // Act & Assert
             Assert.Throws<NotSupportedException>(() =>
-                invalidDestinationList.MapList(_sourceList, "Id", "Id"));
+                invalidDestinationList.MapList(sourceList, "Id", "Id"));
         }
 
         #endregion
@@ -122,19 +135,34 @@ namespace ListMapping.Tests
         [Test]
         public void MapList_LambdaSelector_ShouldUpdateAndRemoveAndAdd()
         {
+            // Arrange
+            var sourceList = new List<Source>
+                {
+                    new Source { Id = 1, Name = "Source1" },
+                    new Source { Id = 2, Name = "Source2" },
+                    new Source { Id = 3, Name = "Source3" }
+                };
+
+            var destinationList = new List<Destination>
+                {
+                    new Destination { Id = 2, Name = "OldDestination2" },
+                    new Destination { Id = 3, Name = "OldDestination3" },
+                    new Destination { Id = 4, Name = "OldDestination4" }
+                };
+
             // Arrange & Act
-            _destinationList.MapList(
-                _sourceList,
+            destinationList.MapList(
+                sourceList,
                 s => s.Id,
                 d => d.Id
             );
 
             // Assert (similar checks as the string-based test)
-            Assert.AreEqual("Source2", _destinationList.First(d => d.Id == 2).Name);
-            Assert.AreEqual("Source3", _destinationList.First(d => d.Id == 3).Name);
-            Assert.IsFalse(_destinationList.Any(d => d.Id == 4), "Should remove item with Id=4.");
-            Assert.IsTrue(_destinationList.Any(d => d.Id == 1), "Should add item with Id=1.");
-            Assert.AreEqual(3, _destinationList.Count);
+            Assert.AreEqual("Source2", destinationList.First(d => d.Id == 2).Name);
+            Assert.AreEqual("Source3", destinationList.First(d => d.Id == 3).Name);
+            Assert.IsFalse(destinationList.Any(d => d.Id == 4), "Should remove item with Id=4.");
+            Assert.IsTrue(destinationList.Any(d => d.Id == 1), "Should add item with Id=1.");
+            Assert.AreEqual(3, destinationList.Count);
         }
 
         #endregion
@@ -146,13 +174,18 @@ namespace ListMapping.Tests
         {
             // Arrange
             var emptySource = new List<Source>();
-
+            var destinationList = new List<Destination>
+                {
+                    new Destination { Id = 2, Name = "OldDestination2" },
+                    new Destination { Id = 3, Name = "OldDestination3" },
+                    new Destination { Id = 4, Name = "OldDestination4" }
+                };
             // Act
-            _destinationList.MapList(emptySource, "Id", "Id");
+            destinationList.MapList(emptySource, "Id", "Id");
 
             // Assert
             // Should remove all from destination because none match in the source
-            Assert.IsEmpty(_destinationList, "All items should be removed if the source list is empty.");
+            Assert.IsEmpty(destinationList, "All items should be removed if the source list is empty.");
         }
 
         [Test]
@@ -160,24 +193,42 @@ namespace ListMapping.Tests
         {
             // Arrange
             var emptyDestination = new List<Destination>();
-
+            var sourceList = new List<Source>
+                {
+                    new Source { Id = 1, Name = "Source1" },
+                    new Source { Id = 2, Name = "Source2" },
+                    new Source { Id = 3, Name = "Source3" }
+                };
             // Act
-            emptyDestination.MapList(_sourceList, "Id", "Id");
+            emptyDestination.MapList(sourceList, "Id", "Id");
 
             // Assert
             // Should add all items from source
-            Assert.AreEqual(_sourceList.Count, emptyDestination.Count, "All source items should be added.");
+            Assert.AreEqual(sourceList.Count, emptyDestination.Count, "All source items should be added.");
         }
 
         [Test]
         public void MapList_ShouldThrowIfNullLists()
         {
+            var sourceList = new List<Source>
+             {
+                 new Source { Id = 1, Name = "Source1" },
+                 new Source { Id = 2, Name = "Source2" },
+                 new Source { Id = 3, Name = "Source3" }
+             };
+
+                    var destinationList = new List<Destination>
+             {
+                 new Destination { Id = 2, Name = "OldDestination2" },
+                 new Destination { Id = 3, Name = "OldDestination3" },
+                 new Destination { Id = 4, Name = "OldDestination4" }
+             };
             Assert.Throws<ArgumentNullException>(() =>
-                ((List<Destination>)null).MapList(_sourceList, "Id", "Id"),
+                ((List<Destination>)null).MapList(sourceList, "Id", "Id"),
                 "Should throw if destination list is null.");
 
             Assert.Throws<ArgumentNullException>(() =>
-                _destinationList.MapList((List<Source>)null, "Id", "Id"),
+                destinationList.MapList((List<Source>)null, "Id", "Id"),
                 "Should throw if source list is null.");
         }
 
