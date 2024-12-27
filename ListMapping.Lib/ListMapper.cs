@@ -1,15 +1,21 @@
-﻿using Mapster;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
+using static ListMapping.Mapper;
 
 namespace ListMapping
 {
     public class Mapper
     {
         // Static cache for compiled property accessors
-        private readonly ConcurrentDictionary<(Type, string), object> _idAccessorCache
-            = new ConcurrentDictionary<(Type, string), object>();
+        private readonly ConcurrentDictionary<(Type, Type,string), object> _idAccessorCache
+            = new ();
+
+        public static IMapperFactory DefaultMapperFactory { get; set; }
+        public IMapperFactory InstanceMapperFactory { get; private set; }
+
+
+
 
         /// <summary>
         /// MapList with string property names.
@@ -18,7 +24,8 @@ namespace ListMapping
             IList<TSource> sourceList,
             IList<TDestination> destinationList,
             string sourceIdProperty = "Id",
-            string destinationIdProperty = "Id")
+            string destinationIdProperty = "Id",
+            Func<TSource, TDestination, TDestination>? mapper = null)
         {
             if (sourceList == null) throw new ArgumentNullException(nameof(sourceList));
             if (destinationList == null) throw new ArgumentNullException(nameof(destinationList));
@@ -43,7 +50,7 @@ namespace ListMapping
             var sourceIdAccessor =  GetIdAccessor<TSource, object>(sourceIdpropertyInfo);
             var destinationIdAccessor = GetIdAccessor<TDestination, object>(destinationIdPropertyInfo);
 
-            PerformMapping(sourceList, destinationList, sourceIdAccessor, destinationIdAccessor);
+            PerformMapping(sourceList, destinationList, sourceIdAccessor, destinationIdAccessor,mapper);
         }
 
         /// <summary>
@@ -53,7 +60,8 @@ namespace ListMapping
             IList<TSource> sourceList,
             IList<TDestination> destinationList,
             Expression<Func<TSource, IdType>> sourceIdSelector,
-            Expression<Func<TDestination, IdType>> destinationIdSelector)
+            Expression<Func<TDestination, IdType>> destinationIdSelector, 
+            Func<TSource, TDestination, TDestination>? mapper = null)
         {
             if (sourceList == null) throw new ArgumentNullException(nameof(sourceList));
             if (destinationList == null) throw new ArgumentNullException(nameof(destinationList));
@@ -85,7 +93,7 @@ namespace ListMapping
             var sourceIdAccessor = GetIdAccessor<TSource, IdType>(sourceIdpropertyInfo);
             var destinationIdAccessor = GetIdAccessor<TDestination, IdType>(destinationIdPropertyInfo);
 
-            PerformMapping(sourceList, destinationList, sourceIdAccessor, destinationIdAccessor);
+            PerformMapping(sourceList, destinationList, sourceIdAccessor, destinationIdAccessor, mapper);
         }
 
         /// <summary>
@@ -95,7 +103,8 @@ namespace ListMapping
             IList<TSource> sourceList,
             IList<TDestination> destinationList,
             Func<TSource, IdType> sourceIdAccessor,
-            Func<TDestination, IdType> destinationIdAccessor)
+            Func<TDestination, IdType> destinationIdAccessor, 
+            Func<TSource, TDestination, TDestination>? mapper)
         {
             // Remove items not in the source list
             var itemsToRemove = destinationList
@@ -119,13 +128,37 @@ namespace ListMapping
 
                 if (destination != null)
                 {
-                    source.Adapt(destination);
+
+                    destination = MapObject(source, destination, mapper);
                 }
                 else
                 {
-                    destinationList.Add(source.Adapt<TDestination>());
+                    destinationList.Add(MapObject(source, default, mapper));
                 }
             }
+        }
+
+        private TDestination MapObject<TSource, TDestination>(TSource source, TDestination destination, Func<TSource, TDestination , TDestination>? mapper)
+        {
+            if (mapper != null)
+            {
+                return mapper(source, destination);
+            }
+
+            if (InstanceMapperFactory != null)
+            {
+                return InstanceMapperFactory.Create<TSource, TDestination>()(source, destination);
+            }
+
+
+            if (DefaultMapperFactory != null) 
+            {
+                return DefaultMapperFactory.Create<TSource, TDestination>()(source, destination);
+            }
+
+          
+
+            throw new NullReferenceException();
         }
 
         /// <summary>
@@ -133,7 +166,7 @@ namespace ListMapping
         /// </summary>
         private Func<T, TId> GetIdAccessor<T, TId>(PropertyInfo propertyInfo)
         {
-            var key = (typeof(T), propertyInfo.Name);
+            var key = (typeof(T), typeof(TId), propertyInfo.Name);
 
             var result = (Func<T, TId>)_idAccessorCache.GetOrAdd(key, _ => GetIdAccessorInte<T, TId>(propertyInfo));
 

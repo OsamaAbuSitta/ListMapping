@@ -29,7 +29,7 @@ namespace ListMapping.Tests
 
             // Act & Assert
             // This often throws or is ignored, as reflection is trying to find a Property named "IdField".
-            Assert.Throws<NotSupportedException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 destinationList.MapList(
                     sourceList,

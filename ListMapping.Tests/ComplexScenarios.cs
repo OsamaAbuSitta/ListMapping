@@ -5,7 +5,9 @@
     {
         [SetUp]
         public void Setup()
-        { 
+        {
+
+            Mapper.DefaultMapperFactory = new DefaultMapperFactory();
         }
 
         #region Property Type Mismatch
@@ -41,7 +43,7 @@
             // The comparison sourceIdAccessor(s).Equals(destinationIdAccessor(d)) might fail
             // or simply never match because "2" != 2, depending on how Mapster handles equality.
             // This often results in no updates happening or an exception.
-
+            destinationList.MapList(sourceList);
             Assert.AreEqual(2, destinationList.Count);
             Assert.AreEqual("Source1", destinationList.First(d => d.Id == 1).Name);
             Assert.AreEqual("Source2", destinationList.First(d => d.Id == 2).Name);
