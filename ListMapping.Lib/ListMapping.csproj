@@ -4,6 +4,21 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Title>ListMapping</Title>
+    <Authors>Osama Abu-Sitta </Authors>
+    <Description>ListMapping is a library designed to simplify and optimize the process of synchronizing two lists based on matching identifiers. Say goodbye to repetitive nested `for` loops when mapping lists!</Description>
+    <PackageProjectUrl>https://github.com/OsamaAbuSitta/ListMapping</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/OsamaAbuSitta/ListMapping</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>mapping,mapper,list,</PackageTags>
+    <Version>1.0.1</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath="icon.png" />
+    <None Include="LICENSE" Pack="true" PackagePath="LICENSE.txt" />
+    <None Include="README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
 
 </Project>
